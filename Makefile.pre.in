@@ -369,16 +369,10 @@ PARSER_HEADERS= \
 # these files are included in both python and python.nocomp
 PYTHON_OBJS_BASE=	\
 		Python/_warnings.o \
-		Python/Python-ast.o \
 		Python/asdl.o \
-		Python/assemble.o \
-		Python/ast.o \
-		Python/ast_opt.o \
-		Python/ast_unparse.o \
 		Python/bltinmodule.o \
 		Python/ceval.o \
 		Python/codecs.o \
-		Python/compile.o \
 		Python/context.o \
 		Python/dynamic_annotations.o \
 		Python/errors.o \
@@ -447,6 +441,12 @@ PYTHON_OBJS_BASE=	\
 PYTHON_OBJS=	\
 		$(PYTHON_OBJS_BASE) \
 		Python/Python-tokenize.o \
+		Python/Python-ast.o \
+		Python/assemble.o \
+		Python/ast.o \
+		Python/ast_opt.o \
+		Python/ast_unparse.o \
+		Python/compile.o \
 
 # these are only included in python.nocomp
 PYTHON_OBJS_NOCOMP=	\
