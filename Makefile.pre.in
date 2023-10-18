@@ -279,6 +279,7 @@ LIBOBJS=	@LIBOBJS@
 
 PYTHON=		python$(EXE)
 BUILDPYTHON=	python$(BUILDEXE)
+BUILDPYTHON_NOCOMP= python.nocomp$(BUILDEXE)
 
 HOSTRUNNER= @HOSTRUNNER@
 
@@ -365,10 +366,10 @@ PARSER_HEADERS= \
 ##########################################################################
 # Python
 
-PYTHON_OBJS=	\
+# these files are included in both python and python.nocomp
+PYTHON_OBJS_BASE=	\
 		Python/_warnings.o \
 		Python/Python-ast.o \
-		Python/Python-tokenize.o \
 		Python/asdl.o \
 		Python/assemble.o \
 		Python/ast.o \
@@ -442,6 +443,18 @@ PYTHON_OBJS=	\
 		$(DTRACE_OBJS) \
 		@PLATFORM_OBJS@
 
+# these are only included in python
+PYTHON_OBJS=	\
+		$(PYTHON_OBJS_BASE) \
+		Python/Python-tokenize.o \
+
+# these are only included in python.nocomp
+PYTHON_OBJS_NOCOMP=	\
+		$(PYTHON_OBJS_BASE) \
+		Python/nocomp.o \
+
+
+
 
 ##########################################################################
 # Objects
@@ -502,12 +515,27 @@ LIBRARY_OBJS_OMIT_FROZEN=	\
 		$(MODULE_OBJS) \
 		$(MODOBJS)
 
+LIBRARY_OBJS_OMIT_FROZEN_NOCOMP=	\
+		Modules/getbuildinfo.o \
+		$(OBJECT_OBJS) \
+		$(PYTHON_OBJS_NOCOMP) \
+		$(MODULE_OBJS) \
+		$(MODOBJS)
+
 LIBRARY_OBJS=	\
 		$(LIBRARY_OBJS_OMIT_FROZEN) \
 		Modules/getpath.o \
 		Python/frozen.o
 
-LINK_PYTHON_OBJS=@LINK_PYTHON_OBJS@
+LIBRARY_OBJS_NOCOMP=	\
+		$(LIBRARY_OBJS_OMIT_FROZEN_NOCOMP) \
+		Modules/getpath.o \
+		Python/frozen.o
+
+
+LINK_PYTHON_OBJS_NOCOMP=$(LIBRARY_OBJS_NOCOMP)
+LINK_PYTHON_OBJS=@LINK_PYTHON_OBJS@  # wtf?
+
 
 ##########################################################################
 # DTrace
@@ -785,6 +813,10 @@ clinic-tests: check-clean-src $(srcdir)/Lib/test/clinic.test.c
 # Build the interpreter
 $(BUILDPYTHON):	Programs/python.o $(LINK_PYTHON_DEPS)
 	$(LINKCC) $(PY_CORE_LDFLAGS) $(LINKFORSHARED) -o $@ Programs/python.o $(LINK_PYTHON_OBJS) $(LIBS) $(MODLIBS) $(SYSLIBS)
+
+$(BUILDPYTHON_NOCOMP):	Programs/python.o $(LINK_PYTHON_DEPS)
+	$(LINKCC) $(PY_CORE_LDFLAGS) $(LINKFORSHARED) -o $@ Programs/python.o $(LINK_PYTHON_OBJS_NOCOMP) $(LIBS) $(MODLIBS) $(SYSLIBS)
+
 
 platform: $(PYTHON_FOR_BUILD_DEPS) pybuilddir.txt
 	$(RUNSHARED) $(PYTHON_FOR_BUILD) -c 'import sys ; from sysconfig import get_platform ; print("%s-%d.%d" % (get_platform(), *sys.version_info[:2]))' >platform
@@ -1331,6 +1363,7 @@ regen-all: regen-cases regen-typeslots \
 Modules/getbuildinfo.o: $(PARSER_OBJS) \
 		$(OBJECT_OBJS) \
 		$(PYTHON_OBJS) \
+		$(PYTHON_OBJS_NOCOMP) \
 		$(MODULE_OBJS) \
 		$(MODOBJS) \
 		$(DTRACE_OBJS) \
